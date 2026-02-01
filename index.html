@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #121212;
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 15px;
+        }
+        #bt-app-root {
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 500px;
+        }
+        #bt-loader {
+            background: black;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 20px;
+            text-align: center;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .btn-add {
+            background: #4ade80;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+            font-size: 14px;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: #222;
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+        }
+        .summary-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .summary-value {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 25px 0 15px 0;
+        }
+        .controls h3 {
+            font-size: 18px;
+            color: #ddd;
+            flex-grow: 1;
+        }
+        .btn-window,
+        .btn-reset {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-reset {
+            font-size: 18px;
+            min-width: auto;
+        }
+        .btn-window {
+            min-width: 90px;
+        }
+        #bt-list {
+            list-style: none;
+            padding: 0;
+        }
+        .bill-item {
+            background: #1e1e1e;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #333;
+            cursor: pointer;
+        }
+        .bill-item.paid {
+            opacity: 0.5;
+        }
+        .bill-left {
+            flex: 1;
+        }
+        .bill-name {
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        .badge.paid {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        .badge.unpaid {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .bill-info {
+            font-size: 13px;
+            color: #888;
+        }
+        .bill-amount {
+            font-weight: bold;
+            font-size: 18px;
+            color: #f3f4f6;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 16px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+        .modal-title {
+            margin-top: 0;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        input,
+        select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .btn-save {
+            flex: 1;
+            padding: 14px;
+            background: #4ade80;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-cancel {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #666;
+            color: #ccc;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .edit-actions {
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            display: none;
+        }
+        .edit-actions.show {
+            display: block;
+        }
+        .btn-toggle {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 10px;
+            background: #22d3ee;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-delete {
+            width: 100%;
+            padding: 14px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #555;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="bt-app-root">
+        <div id="bt-loader">LOADING...</div>
+        <div id="bt-ui" style="display:none;">
+            <div class="header">
+                <h2 class="title">CUENTAS</h2>
+                <button class="btn-add" onclick="btAdd()">+ AGREGAR</button>
+            </div>
+            <div class="summary">
+                <div class="summary-card">
+                    <div class="summary-label">TOTAL</div>
+                    <div id="bt-total" class="summary-value" style="color:#ef4444;">$0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">PROXIMO</div>
+                    <div id="bt-next" class="summary-value">-</div>
+                </div>
+            </div>
+            <div class="controls">
+                <h3>Proximos</h3>
+                <button id="bt-btn-window" class="btn-window" onclick="btMore()">15 dias</button>
+                <button class="btn-reset" onclick="btReset()" title="Reset">↺</button>
+            </div>
+            <ul id="bt-list"></ul>
+        </div>
+        <div id="bt-modal" class="modal">
+            <div class="modal-content">
+                <h3 id="bt-modal-title" class="modal-title">Cuenta</h3>
+                <input id="bt-name" placeholder="Nombre">
+                <input id="bt-amount" type="number" placeholder="Monto">
+                <input id="bt-date" type="date">
+                <select id="bt-cat">
+                    <option value="Servicios">Servicios</option>
+                    <option value="Suscripcion">Suscripcion</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    <option value="Hogar">Hogar</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <input id="bt-cat-custom" placeholder="Categoria" style="display:none;">
+                <select id="bt-rec">
+                    <option value="Once">Una vez</option>
+                    <option value="Monthly">Mensual</option>
+                    <option value="Yearly">Anual</option>
+                </select>
+                <div class="btn-group">
+                    <button class="btn-save" onclick="btSave()">GUARDAR</button>
+                    <button class="btn-cancel" onclick="btClose()">CANCELAR</button>
+                </div>
+                <div id="bt-edit-actions" class="edit-actions">
+                    <button id="bt-btn-toggle" class="btn-toggle" onclick="btToggle()">Marcar Pagado</button>
+                    <button class="btn-delete" onclick="btDel()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var API = "https://script.google.com/macros/s/AKfycbxSJbFEFS4el0kTGJhjbQtEygRj67aTh8VeczcnMftNdMF2sN28ReknkrfQLOfTrGkW/exec";
+        var bills = [];
+        var currentId = null;
+        var viewDays = 15;
+        // XHR instead of fetch (more compatible)
+        function apiRequest(method, data, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(method, API, true);
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        var json = JSON.parse(xhr.responseText);
+                        callback(null, json);
+                    } catch (e) {
+                        callback(e);
+                    }
+                } else {
+                    callback(new Error('HTTP ' + xhr.status));
+                }
+            };
+            xhr.onerror = function () {
+                callback(new Error('Network error'));
+            };
+            if (method === 'POST') {
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify(data));
+            } else {
+                xhr.send();
+            }
+        }
+        function btReload() {
+            apiRequest('GET', null, function (err, json) {
+                if (err) {
+                    var l = document.getElementById('bt-loader');
+                    if (l) { l.innerText = "ERROR: " + err.message; l.style.color = 'red'; }
+                    return;
+                }
+                if (json.status === 'success') {
+                    bills = json.data;
+                    btRender();
+                    document.getElementById('bt-ui').style.display = 'block';
+                    document.getElementById('bt-loader').style.display = 'none';
+                } else {
+                    alert("API Error: " + json.message);
+                }
+            });
+        }
+        window.addEventListener('load', function () {
+            var catSel = document.getElementById('bt-cat');
+            if (catSel) catSel.onchange = function (e) {
+                document.getElementById('bt-cat-custom').style.display = (e.target.value === 'Otro') ? 'block' : 'none';
+            };
+            btReload();
+        });
+        function btMore() {
+            viewDays = viewDays + 15;
+            if (viewDays > 375) viewDays = 15;
+            btRender();
+        }
+        function btReset() { viewDays = 15; btRender(); }
+        function fmtDate(iso) {
+            if (!iso || iso.indexOf('-') === -1) return iso;
+            var p = iso.split('-');
+            var mVal = parseInt(p[1]);
+            var mIndex = mVal - 1;
+            var months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            return parseInt(p[2]) + " " + months[mIndex];
+        }
+        function btRender() {
+            var list = document.getElementById('bt-list');
+            list.innerHTML = "";
+            document.getElementById('bt-btn-window').innerText = viewDays + " dias";
+            var limit = new Date();
+            limit.setDate(limit.getDate() + viewDays);
+            limit.setHours(23, 59, 59, 999);
+            bills.sort(function (a, b) { return a.date > b.date ? 1 : -1; });
+            var visibleTotal = 0;
+            var visibleCount = 0;
+            bills.forEach(function (b) {
+                var isPaid = b.status === "Paid";
+                var bDate = new Date();
+                if (b.date && b.date.indexOf('-') > 0) {
+                    var p = b.date.split('-');
+                    var yArr = parseInt(p[0]);
+                    var mArr = parseInt(p[1]); mArr = mArr - 1;
+                    var dArr = parseInt(p[2]);
+                    bDate = new Date(yArr, mArr, dArr);
+                }
+                if (limit >= bDate) {
+                    visibleCount++;
+                    if (!isPaid) visibleTotal = visibleTotal + parseFloat(b.amount || 0);
+                    var li = document.createElement('li');
+                    li.className = 'bill-item' + (isPaid ? ' paid' : '');
+                    li.onclick = function () { btEdit(b.id); };
+                    var leftDiv = document.createElement('div');
+                    leftDiv.className = 'bill-left';
+                    var nameDiv = document.createElement('div');
+                    nameDiv.className = 'bill-name';
+                    nameDiv.innerHTML = b.name + ' <span class="badge ' + (isPaid ? 'paid' : 'unpaid') + '">' +
+                        (isPaid ? 'PAGADO' : 'PENDIENTE') + '</span>';
+                    leftDiv.appendChild(nameDiv);
+                    var infoDiv = document.createElement('div');
+                    infoDiv.className = 'bill-info';
+                    infoDiv.innerText = fmtDate(b.date) + " • " + b.category;
+                    leftDiv.appendChild(infoDiv);
+                    li.appendChild(leftDiv);
+                    var rightDiv = document.createElement('div');
+                    rightDiv.className = 'bill-amount';
+                    rightDiv.innerText = "$" + b.amount;
+                    li.appendChild(rightDiv);
+                    list.appendChild(li);
+                }
+            });
+            if (visibleCount === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'empty';
+                empty.innerText = "Todo pagado para los proximos " + viewDays + " dias";
+                list.appendChild(empty);
+            }
+            document.getElementById('bt-total').innerText = "$" + visibleTotal.toFixed(2);
+            var unpaid = bills.filter(function (x) { return x.status === 'Unpaid' });
+            var nextEl = document.getElementById('bt-next');
+            if (unpaid.length > 0) {
+                var earliest = unpaid.sort(function (a, b) { return a.date > b.date ? 1 : -1 })[0];
+                if (earliest.date && earliest.date.indexOf('-') > 0) {
+                    var p = earliest.date.split('-');
+                    var yNext = parseInt(p[0]);
+                    var mNext = parseInt(p[1]); mNext = mNext - 1;
+                    var dNext = parseInt(p[2]);
+                    var dt = new Date(yNext, mNext, dNext);
+                    var nowZero = new Date();
+                    nowZero.setHours(0, 0, 0, 0);
+                    var msDiff = dt - nowZero;
+                    var oneDay = 86400000;
+                    var diff = Math.ceil(msDiff / oneDay);
+                    nextEl.innerText = diff + " dias";
+                    nextEl.style.color = (3 > diff) ? '#ef4444' : '#4ade80';
+                } else { nextEl.innerText = "-"; }
+            } else { nextEl.innerText = "-"; }
+        }
+        function btAdd() {
+            currentId = null;
+            document.getElementById('bt-modal-title').innerText = "Nueva Cuenta";
+            document.getElementById('bt-edit-actions').className = 'edit-actions';
+            document.getElementById('bt-name').value = "";
+            document.getElementById('bt-amount').value = "";
+            document.getElementById('bt-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('bt-cat').value = "Servicios";
+            document.getElementById('bt-rec').value = "Once";
+            document.getElementById('bt-modal').className = 'modal show';
+        }
+        function btEdit(id) {
+            var b = bills.find(function (x) { return x.id === id });
+            if (!b) return;
+            currentId = id;
+            document.getElementById('bt-modal-title').innerText = "Editar Cuenta";
+            document.getElementById('bt-edit-actions').className = 'edit-actions show';
+            document.getElementById('bt-name').value = b.name;
+            document.getElementById('bt-amount').value = b.amount;
+            document.getElementById('bt-date').value = b.date;
+            document.getElementById('bt-cat').value = b.category;
+            document.getElementById('bt-rec').value = b.recurrence;
+            var toggleBtn = document.getElementById('bt-btn-toggle');
+            if (b.status === 'Paid') {
+                toggleBtn.innerText = "Marcar Pendiente";
+                toggleBtn.style.background = "#ef4444";
+            } else {
+                toggleBtn.innerText = "Marcar Pagado";
+                toggleBtn.style.background = "#22d3ee";
+            }
+            document.getElementById('bt-modal').className = 'modal show';
+        }
+        function btClose() {
+            document.getElementById('bt-modal').className = 'modal';
+        }
+        function btSave() {
+            var name = document.getElementById('bt-name').value;
+            var amount = document.getElementById('bt-amount').value;
+            var date = document.getElementById('bt-date').value;
+            var cat = document.getElementById('bt-cat').value;
+            var catCustom = document.getElementById('bt-cat-custom').value;
+            var rec = document.getElementById('bt-rec').value;
+            if (cat === 'Otro' && catCustom) cat = catCustom;
+            if (!name || !amount || !date) {
+                alert("Por favor completa todos los campos");
+                return;
+            }
+            var payload = {
+                name: name,
+                amount: parseFloat(amount),
+                date: date,
+                category: cat,
+                recurrence: rec
+            };
+            if (currentId) {
+                payload.action = 'update';
+                payload.id = currentId;
+            } else {
+                payload.action = 'add';
+            }
+            apiRequest('POST', payload, function (err, json) {
+                if (err) {
+                    alert("Error de red: " + err.message);
+                    return;
+                }
+                if (json.status === 'success') {
+                    btClose();
+                    btReload();
+                } else {
+                    alert("Error: " + json.message);
+                }
+            });
+        }
+        function btToggle() {
+            if (!currentId) return;
+            var b = bills.find(function (x) { return x.id === currentId });
+            if (!b) return;
+            var newStatus = (b.status === 'Paid') ? 'Unpaid' : 'Paid';
+            apiRequest('POST', {
+                action: 'update',
+                id: currentId,
+                status: newStatus
+            }, function (err, json) {
+                if (err) {
+                    alert("Error de red: " + err.message);
+                    return;
+                }
+                if (json.status === 'success') {
+                    btClose();
+                    btReload();
+                } else {
+                    alert("Error: " + json.message);
+                }
+            });
+        }
+        function btDel() {
+            if (!currentId) return;
+            if (!confirm("¿Eliminar esta cuenta y todas las futuras recurrencias?")) return;
+            apiRequest('POST', {
+                action: 'delete',
+                id: currentId
+            }, function (err, json) {
+                if (err) {
+                    alert("Error de red: " + err.message);
+                    return;
+                }
+                if (json.status === 'success') {
+                    btClose();
+                    btReload();
+                } else {
+                    alert("Error: " + json.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
