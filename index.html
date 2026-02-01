@@ -329,48 +329,55 @@
         var bills = [];
         var currentId = null;
         var viewDays = 15;
-        // XHR instead of fetch (more compatible)
-        function apiRequest(method, data, callback) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(method, API, true);
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        var json = JSON.parse(xhr.responseText);
-                        callback(null, json);
-                    } catch (e) {
-                        callback(e);
-                    }
-                } else {
-                    callback(new Error('HTTP ' + xhr.status));
-                }
-            };
-            xhr.onerror = function () {
-                callback(new Error('Network error'));
-            };
-            if (method === 'POST') {
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.send(JSON.stringify(data));
-            } else {
-                xhr.send();
-            }
-        }
+        // JSONP for GET, form submission for POST (works around CORS)
         function btReload() {
-            apiRequest('GET', null, function (err, json) {
-                if (err) {
-                    var l = document.getElementById('bt-loader');
-                    if (l) { l.innerText = "ERROR: " + err.message; l.style.color = 'red'; }
-                    return;
-                }
+            var script = document.createElement('script');
+            var callbackName = 'btDataCallback_' + Date.now();
+            window[callbackName] = function (json) {
                 if (json.status === 'success') {
                     bills = json.data;
                     btRender();
                     document.getElementById('bt-ui').style.display = 'block';
                     document.getElementById('bt-loader').style.display = 'none';
                 } else {
-                    alert("API Error: " + json.message);
+                    var l = document.getElementById('bt-loader');
+                    if (l) { l.innerText = "ERROR: " + json.message; l.style.color = 'red'; }
                 }
-            });
+                delete window[callbackName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+            };
+            script.onerror = function () {
+                var l = document.getElementById('bt-loader');
+                if (l) { l.innerText = "ERROR: Cannot connect to server"; l.style.color = 'red'; }
+                delete window[callbackName];
+            };
+            script.src = API + '?callback=' + callbackName;
+            document.body.appendChild(script);
+        }
+        function apiPost(data, callback) {
+            // Use hidden iframe form submission (no CORS issues)
+            var iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.name = 'postFrame_' + Date.now();
+            document.body.appendChild(iframe);
+            var form = document.createElement('form');
+            form.target = iframe.name;
+            form.method = 'POST';
+            form.action = API;
+            form.style.display = 'none';
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payload';
+            input.value = JSON.stringify(data);
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            // Wait for response, then cleanup and reload
+            setTimeout(function () {
+                document.body.removeChild(form);
+                document.body.removeChild(iframe);
+                if (callback) callback();
+            }, 1500);
         }
         window.addEventListener('load', function () {
             var catSel = document.getElementById('bt-cat');
@@ -525,17 +532,9 @@
             } else {
                 payload.action = 'add';
             }
-            apiRequest('POST', payload, function (err, json) {
-                if (err) {
-                    alert("Error de red: " + err.message);
-                    return;
-                }
-                if (json.status === 'success') {
-                    btClose();
-                    btReload();
-                } else {
-                    alert("Error: " + json.message);
-                }
+            apiPost(payload, function () {
+                btClose();
+                btReload();
             });
         }
         function btToggle() {
@@ -543,40 +542,24 @@
             var b = bills.find(function (x) { return x.id === currentId });
             if (!b) return;
             var newStatus = (b.status === 'Paid') ? 'Unpaid' : 'Paid';
-            apiRequest('POST', {
+            apiPost({
                 action: 'update',
                 id: currentId,
                 status: newStatus
-            }, function (err, json) {
-                if (err) {
-                    alert("Error de red: " + err.message);
-                    return;
-                }
-                if (json.status === 'success') {
-                    btClose();
-                    btReload();
-                } else {
-                    alert("Error: " + json.message);
-                }
+            }, function () {
+                btClose();
+                btReload();
             });
         }
         function btDel() {
             if (!currentId) return;
             if (!confirm("¿Eliminar esta cuenta y todas las futuras recurrencias?")) return;
-            apiRequest('POST', {
+            apiPost({
                 action: 'delete',
                 id: currentId
-            }, function (err, json) {
-                if (err) {
-                    alert("Error de red: " + err.message);
-                    return;
-                }
-                if (json.status === 'success') {
-                    btClose();
-                    btReload();
-                } else {
-                    alert("Error: " + json.message);
-                }
+            }, function () {
+                btClose();
+                btReload();
             });
         }
     </script>
