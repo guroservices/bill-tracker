@@ -94,18 +94,22 @@
         .controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
             margin: 25px 0 15px 0;
         }
 
         .controls h3 {
             font-size: 18px;
             color: #ddd;
-            flex-grow: 1;
+            margin: 0;
         }
 
-        .btn-filter,
-        .btn-reset {
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-filter {
             background: #333;
             color: white;
             border: 1px solid #555;
@@ -128,11 +132,6 @@
             border-color: #666;
         }
 
-        .btn-reset {
-            font-size: 18px;
-            min-width: auto;
-        }
-
         #bt-list {
             list-style: none;
             padding: 0;
@@ -147,11 +146,25 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid #333;
+            border-left: 4px solid #ef4444;
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bill-item:hover {
+            background: #252525;
+            border-left-color: #f87171;
         }
 
         .bill-item.paid {
-            opacity: 0.5;
+            opacity: 0.6;
+            border-left-color: #4ade80;
+            background: #1a1e1a;
+        }
+
+        .bill-item.paid:hover {
+            opacity: 0.75;
+            background: #1f241f;
         }
 
         .bill-left {
@@ -167,7 +180,7 @@
 
         .badge {
             font-size: 10px;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             margin-left: 8px;
             text-transform: uppercase;
@@ -176,13 +189,13 @@
         }
 
         .badge.paid {
-            background: rgba(74, 222, 128, 0.2);
-            color: #4ade80;
+            background: #4ade80;
+            color: #000;
         }
 
         .badge.unpaid {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+            background: #ef4444;
+            color: #fff;
         }
 
         .bill-info {
@@ -337,10 +350,11 @@
             </div>
             <div class="controls">
                 <h3>Proximos</h3>
-                <button class="btn-filter active" onclick="btSetFilter(15)">15 dias</button>
-                <button class="btn-filter" onclick="btSetFilter(30)">30 dias</button>
-                <button class="btn-filter" onclick="btSetFilter(365)">365 dias</button>
-                <button class="btn-reset" onclick="btReset()" title="Reset">↺</button>
+                <div class="filter-buttons">
+                    <button class="btn-filter active" onclick="btSetFilter(15)">15 dias</button>
+                    <button class="btn-filter" onclick="btSetFilter(30)">30 dias</button>
+                    <button class="btn-filter" onclick="btSetFilter(365)">365 dias</button>
+                </div>
             </div>
             <ul id="bt-list"></ul>
         </div>
@@ -468,11 +482,13 @@
         }
 
         function btReset() {
-            btSetFilter(15);
-            // Manually activate the 15 days button
+            viewDays = 15;
+            btRender();
+            // Update button states
             var buttons = document.querySelectorAll('.btn-filter');
-            buttons.forEach(function (btn) { btn.classList.remove('active'); });
-            buttons[0].classList.add('active');
+            buttons.forEach(function (btn, idx) {
+                btn.classList.toggle('active', idx === 0);
+            });
         }
 
         function fmtDate(iso) {
