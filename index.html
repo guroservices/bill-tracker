@@ -124,9 +124,9 @@
 
         .btn-filter.active,
         .btn-filter-paid.active {
-            background: #4ade80;
+            background: #fbbf24;
             color: #000;
-            border-color: #4ade80;
+            border-color: #fbbf24;
         }
 
         .btn-filter:hover:not(.active),
@@ -522,8 +522,11 @@
         function fmtDate(iso) {
             if (!iso || iso.indexOf('-') === -1) return iso;
             var p = iso.split('-');
-            var months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            return parseInt(p[2]) + " " + months[parseInt(p[1]) - 1];
+            var months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            var day = p[2].padStart(2, '0');
+            var month = months[parseInt(p[1]) - 1];
+            var year = p[0];
+            return day + " " + month + " " + year;
         }
 
         function btRender() {
