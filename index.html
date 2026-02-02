@@ -109,7 +109,8 @@
             gap: 10px;
         }
 
-        .btn-filter {
+        .btn-filter,
+        .btn-filter-paid {
             background: #333;
             color: white;
             border: 1px solid #555;
@@ -121,13 +122,15 @@
             transition: all 0.2s ease;
         }
 
-        .btn-filter.active {
+        .btn-filter.active,
+        .btn-filter-paid.active {
             background: #4ade80;
             color: #000;
             border-color: #4ade80;
         }
 
-        .btn-filter:hover:not(.active) {
+        .btn-filter:hover:not(.active),
+        .btn-filter-paid:hover:not(.active) {
             background: #444;
             border-color: #666;
         }
@@ -351,12 +354,22 @@
             <div class="controls">
                 <h3>Proximos</h3>
                 <div class="filter-buttons">
-                    <button class="btn-filter active" onclick="btSetFilter(15)">15 dias</button>
-                    <button class="btn-filter" onclick="btSetFilter(30)">30 dias</button>
-                    <button class="btn-filter" onclick="btSetFilter(365)">365 dias</button>
+                    <button class="btn-filter active" onclick="btSetFilter(15, 'unpaid')">15 dias</button>
+                    <button class="btn-filter" onclick="btSetFilter(30, 'unpaid')">30 dias</button>
+                    <button class="btn-filter" onclick="btSetFilter(365, 'unpaid')">365 dias</button>
                 </div>
             </div>
             <ul id="bt-list"></ul>
+
+            <div class="controls" style="margin-top: 40px;">
+                <h3>Pagados</h3>
+                <div class="filter-buttons">
+                    <button class="btn-filter-paid active" onclick="btSetFilter(15, 'paid')">15 dias</button>
+                    <button class="btn-filter-paid" onclick="btSetFilter(30, 'paid')">30 dias</button>
+                    <button class="btn-filter-paid" onclick="btSetFilter(365, 'paid')">365 dias</button>
+                </div>
+            </div>
+            <ul id="bt-list-paid"></ul>
         </div>
         <div id="bt-modal" class="modal">
             <div class="modal-content">
@@ -395,6 +408,7 @@
         var bills = [];
         var currentId = null;
         var viewDays = 15;
+        var viewDaysPaid = 15;
 
         // Pure JSONP - no CORS issues
         function btReload() {
@@ -468,25 +482,39 @@
             btReload();
         });
 
-        function btSetFilter(days) {
-            viewDays = days;
-
-            // Update active button styling
-            var buttons = document.querySelectorAll('.btn-filter');
-            buttons.forEach(function (btn) {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+        function btSetFilter(days, section) {
+            if (section === 'paid') {
+                viewDaysPaid = days;
+                // Update active button styling for paid section
+                var buttons = document.querySelectorAll('.btn-filter-paid');
+                buttons.forEach(function (btn) {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+            } else {
+                viewDays = days;
+                // Update active button styling for unpaid section
+                var buttons = document.querySelectorAll('.btn-filter');
+                buttons.forEach(function (btn) {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+            }
 
             btRender();
         }
 
         function btReset() {
             viewDays = 15;
+            viewDaysPaid = 15;
             btRender();
             // Update button states
             var buttons = document.querySelectorAll('.btn-filter');
             buttons.forEach(function (btn, idx) {
+                btn.classList.toggle('active', idx === 0);
+            });
+            var paidButtons = document.querySelectorAll('.btn-filter-paid');
+            paidButtons.forEach(function (btn, idx) {
                 btn.classList.toggle('active', idx === 0);
             });
         }
@@ -499,62 +527,72 @@
         }
 
         function btRender() {
+            // Sort all bills by date
+            bills.sort(function (a, b) { return a.date > b.date ? 1 : -1; });
+
+            // UNPAID BILLS SECTION
             var list = document.getElementById('bt-list');
             list.innerHTML = "";
 
-            var limit = new Date();
-            limit.setDate(limit.getDate() + viewDays);
-            limit.setHours(23, 59, 59, 999);
-
-            bills.sort(function (a, b) { return a.date > b.date ? 1 : -1; });
+            var unpaidLimit = new Date();
+            unpaidLimit.setDate(unpaidLimit.getDate() + viewDays);
+            unpaidLimit.setHours(23, 59, 59, 999);
 
             var visibleTotal = 0;
-            var visibleCount = 0;
+            var unpaidCount = 0;
 
             bills.forEach(function (b) {
-                var isPaid = b.status === "Paid";
+                if (b.status !== 'Unpaid') return; // Only unpaid bills
+
                 var bDate = new Date(b.date + 'T00:00:00');
 
-                if (limit >= bDate) {
-                    visibleCount++;
-                    if (!isPaid) visibleTotal += parseFloat(b.amount || 0);
+                if (unpaidLimit >= bDate) {
+                    unpaidCount++;
+                    visibleTotal += parseFloat(b.amount || 0);
 
-                    var li = document.createElement('li');
-                    li.className = 'bill-item' + (isPaid ? ' paid' : '');
-                    li.onclick = function () { btEdit(b.id); };
-
-                    var leftDiv = document.createElement('div');
-                    leftDiv.className = 'bill-left';
-
-                    var nameDiv = document.createElement('div');
-                    nameDiv.className = 'bill-name';
-                    nameDiv.innerHTML = b.name + ' <span class="badge ' + (isPaid ? 'paid' : 'unpaid') + '">' +
-                        (isPaid ? 'PAGADO' : 'PENDIENTE') + '</span>';
-                    leftDiv.appendChild(nameDiv);
-
-                    var infoDiv = document.createElement('div');
-                    infoDiv.className = 'bill-info';
-                    infoDiv.innerText = fmtDate(b.date) + " • " + b.category;
-                    leftDiv.appendChild(infoDiv);
-
-                    li.appendChild(leftDiv);
-
-                    var rightDiv = document.createElement('div');
-                    rightDiv.className = 'bill-amount';
-                    rightDiv.innerText = "$" + b.amount;
-                    li.appendChild(rightDiv);
-
+                    var li = createBillElement(b, false);
                     list.appendChild(li);
                 }
             });
 
-            if (visibleCount === 0) {
+            if (unpaidCount === 0) {
                 var empty = document.createElement('div');
                 empty.className = 'empty';
-                empty.innerText = "Todo pagado para los proximos " + viewDays + " dias";
+                empty.innerText = "No hay cuentas pendientes para los proximos " + viewDays + " dias";
                 list.appendChild(empty);
             }
 
+            // PAID BILLS SECTION
+            var listPaid = document.getElementById('bt-list-paid');
+            listPaid.innerHTML = "";
+
+            var paidLimit = new Date();
+            paidLimit.setDate(paidLimit.getDate() + viewDaysPaid);
+            paidLimit.setHours(23, 59, 59, 999);
+
+            var paidCount = 0;
+
+            bills.forEach(function (b) {
+                if (b.status !== 'Paid') return; // Only paid bills
+
+                var bDate = new Date(b.date + 'T00:00:00');
+
+                if (paidLimit >= bDate) {
+                    paidCount++;
+
+                    var li = createBillElement(b, true);
+                    listPaid.appendChild(li);
+                }
+            });
+
+            if (paidCount === 0) {
+                var emptyPaid = document.createElement('div');
+                emptyPaid.className = 'empty';
+                emptyPaid.innerText = "No hay cuentas pagadas para los proximos " + viewDaysPaid + " dias";
+                listPaid.appendChild(emptyPaid);
+            }
+
+            // Update summary cards
             document.getElementById('bt-total').innerText = "$" + visibleTotal.toFixed(2);
 
             var unpaid = bills.filter(function (x) { return x.status === 'Unpaid' });
@@ -570,6 +608,36 @@
             } else {
                 nextEl.innerText = "-";
             }
+        }
+
+        // Helper function to create bill list items
+        function createBillElement(b, isPaid) {
+            var li = document.createElement('li');
+            li.className = 'bill-item' + (isPaid ? ' paid' : '');
+            li.onclick = function () { btEdit(b.id); };
+
+            var leftDiv = document.createElement('div');
+            leftDiv.className = 'bill-left';
+
+            var nameDiv = document.createElement('div');
+            nameDiv.className = 'bill-name';
+            nameDiv.innerHTML = b.name + ' <span class="badge ' + (isPaid ? 'paid' : 'unpaid') + '">' +
+                (isPaid ? 'PAGADO' : 'PENDIENTE') + '</span>';
+            leftDiv.appendChild(nameDiv);
+
+            var infoDiv = document.createElement('div');
+            infoDiv.className = 'bill-info';
+            infoDiv.innerText = fmtDate(b.date) + " • " + b.category;
+            leftDiv.appendChild(infoDiv);
+
+            li.appendChild(leftDiv);
+
+            var rightDiv = document.createElement('div');
+            rightDiv.className = 'bill-amount';
+            rightDiv.innerText = "$" + b.amount;
+            li.appendChild(rightDiv);
+
+            return li;
         }
 
         function btAdd() {
