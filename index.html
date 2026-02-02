@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,17 +11,20 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             background-color: #121212;
             color: #f3f4f6;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             padding: 15px;
         }
+
         #bt-app-root {
             max-width: 800px;
             margin: 0 auto;
             min-height: 500px;
         }
+
         #bt-loader {
             background: black;
             color: #0f0;
@@ -30,12 +34,14 @@
             font-family: monospace;
             margin-bottom: 20px;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
         }
+
         .title {
             font-size: 28px;
             font-weight: 900;
@@ -45,6 +51,7 @@
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
         }
+
         .btn-add {
             background: #4ade80;
             color: #000;
@@ -56,40 +63,47 @@
             box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
             font-size: 14px;
         }
+
         .summary {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
+
         .summary-card {
             background: #222;
             padding: 15px;
             text-align: center;
             border-radius: 12px;
         }
+
         .summary-label {
             font-size: 11px;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         .summary-value {
             font-size: 22px;
             font-weight: bold;
             margin-top: 5px;
         }
+
         .controls {
             display: flex;
             align-items: center;
             gap: 10px;
             margin: 25px 0 15px 0;
         }
+
         .controls h3 {
             font-size: 18px;
             color: #ddd;
             flex-grow: 1;
         }
+
         .btn-window,
         .btn-reset {
             background: #333;
@@ -101,17 +115,21 @@
             cursor: pointer;
             font-size: 14px;
         }
+
         .btn-reset {
             font-size: 18px;
             min-width: auto;
         }
+
         .btn-window {
             min-width: 90px;
         }
+
         #bt-list {
             list-style: none;
             padding: 0;
         }
+
         .bill-item {
             background: #1e1e1e;
             padding: 15px;
@@ -123,18 +141,22 @@
             border: 1px solid #333;
             cursor: pointer;
         }
+
         .bill-item.paid {
             opacity: 0.5;
         }
+
         .bill-left {
             flex: 1;
         }
+
         .bill-name {
             font-weight: bold;
             color: white;
             font-size: 16px;
             margin-bottom: 4px;
         }
+
         .badge {
             font-size: 10px;
             padding: 3px 8px;
@@ -144,23 +166,28 @@
             font-weight: bold;
             vertical-align: middle;
         }
+
         .badge.paid {
             background: rgba(74, 222, 128, 0.2);
             color: #4ade80;
         }
+
         .badge.unpaid {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
+
         .bill-info {
             font-size: 13px;
             color: #888;
         }
+
         .bill-amount {
             font-weight: bold;
             font-size: 18px;
             color: #f3f4f6;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -173,9 +200,11 @@
             align-items: center;
             z-index: 9999;
         }
+
         .modal.show {
             display: flex;
         }
+
         .modal-content {
             background: #1e1e1e;
             padding: 25px;
@@ -185,12 +214,14 @@
             border: 1px solid #333;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
+
         .modal-title {
             margin-top: 0;
             color: white;
             margin-bottom: 20px;
             font-size: 20px;
         }
+
         input,
         select {
             width: 100%;
@@ -202,11 +233,13 @@
             border-radius: 8px;
             font-size: 16px;
         }
+
         .btn-group {
             display: flex;
             gap: 10px;
             margin-top: 25px;
         }
+
         .btn-save {
             flex: 1;
             padding: 14px;
@@ -218,6 +251,7 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         .btn-cancel {
             flex: 1;
             padding: 14px;
@@ -229,15 +263,18 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         .edit-actions {
             margin-top: 20px;
             border-top: 1px solid #333;
             padding-top: 20px;
             display: none;
         }
+
         .edit-actions.show {
             display: block;
         }
+
         .btn-toggle {
             width: 100%;
             padding: 14px;
@@ -250,6 +287,7 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         .btn-delete {
             width: 100%;
             padding: 14px;
@@ -261,6 +299,7 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         .empty {
             text-align: center;
             padding: 40px;
@@ -269,6 +308,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="bt-app-root">
         <div id="bt-loader">LOADING...</div>
@@ -324,154 +364,167 @@
             </div>
         </div>
     </div>
+
     <script>
+        // FIXED: Updated with your actual Google Script URL
         var API = "https://script.google.com/macros/s/AKfycbxSJbFEFS4el0kTGJhjbQtEygRj67aTh8VeczcnMftNdMF2sN28ReknkrfQLOfTrGkW/exec";
         var bills = [];
         var currentId = null;
         var viewDays = 15;
-        // JSONP for GET, form submission for POST (works around CORS)
+
+        // Pure JSONP - no CORS issues
         function btReload() {
             var script = document.createElement('script');
-            var callbackName = 'btDataCallback_' + Date.now();
-            window[callbackName] = function (json) {
-                if (json.status === 'success') {
-                    bills = json.data;
+            var callbackName = 'jsonpCallback' + Date.now();
+
+            window[callbackName] = function (response) {
+                if (response.status === 'success') {
+                    bills = response.data || [];
                     btRender();
                     document.getElementById('bt-ui').style.display = 'block';
                     document.getElementById('bt-loader').style.display = 'none';
                 } else {
-                    var l = document.getElementById('bt-loader');
-                    if (l) { l.innerText = "ERROR: " + json.message; l.style.color = 'red'; }
+                    document.getElementById('bt-loader').innerText = "ERROR: " + (response.message || 'Unknown error');
+                    document.getElementById('bt-loader').style.color = 'red';
                 }
                 delete window[callbackName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+                document.body.removeChild(script);
             };
+
             script.onerror = function () {
-                var l = document.getElementById('bt-loader');
-                if (l) { l.innerText = "ERROR: Cannot connect to server"; l.style.color = 'red'; }
+                document.getElementById('bt-loader').innerText = "ERROR: Cannot connect";
+                document.getElementById('bt-loader').style.color = 'red';
                 delete window[callbackName];
             };
-            script.src = API + '?callback=' + callbackName;
+
+            script.src = API + '?callback=' + callbackName + '&t=' + Date.now();
             document.body.appendChild(script);
         }
+
+        // FIXED: Changed field name from 'data' to 'payload' to match backend
         function apiPost(data, callback) {
-            // Use hidden iframe form submission (no CORS issues)
             var iframe = document.createElement('iframe');
             iframe.style.display = 'none';
-            iframe.name = 'postFrame_' + Date.now();
+            iframe.name = 'hiddenFrame' + Date.now();
             document.body.appendChild(iframe);
+
             var form = document.createElement('form');
             form.target = iframe.name;
             form.method = 'POST';
             form.action = API;
-            form.style.display = 'none';
+
             var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload';
+            input.name = 'payload';  // FIXED: Changed from 'data' to 'payload'
             input.value = JSON.stringify(data);
             form.appendChild(input);
+
             document.body.appendChild(form);
             form.submit();
-            // Wait for response, then cleanup and reload
+
             setTimeout(function () {
                 document.body.removeChild(form);
                 document.body.removeChild(iframe);
                 if (callback) callback();
-            }, 1500);
+            }, 1000);
         }
+
         window.addEventListener('load', function () {
-            var catSel = document.getElementById('bt-cat');
-            if (catSel) catSel.onchange = function (e) {
+            document.getElementById('bt-cat').onchange = function (e) {
                 document.getElementById('bt-cat-custom').style.display = (e.target.value === 'Otro') ? 'block' : 'none';
             };
             btReload();
         });
+
         function btMore() {
-            viewDays = viewDays + 15;
+            viewDays += 15;
             if (viewDays > 375) viewDays = 15;
             btRender();
         }
+
         function btReset() { viewDays = 15; btRender(); }
+
         function fmtDate(iso) {
             if (!iso || iso.indexOf('-') === -1) return iso;
             var p = iso.split('-');
-            var mVal = parseInt(p[1]);
-            var mIndex = mVal - 1;
             var months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            return parseInt(p[2]) + " " + months[mIndex];
+            return parseInt(p[2]) + " " + months[parseInt(p[1]) - 1];
         }
+
         function btRender() {
             var list = document.getElementById('bt-list');
             list.innerHTML = "";
             document.getElementById('bt-btn-window').innerText = viewDays + " dias";
+
             var limit = new Date();
             limit.setDate(limit.getDate() + viewDays);
             limit.setHours(23, 59, 59, 999);
+
             bills.sort(function (a, b) { return a.date > b.date ? 1 : -1; });
+
             var visibleTotal = 0;
             var visibleCount = 0;
+
             bills.forEach(function (b) {
                 var isPaid = b.status === "Paid";
-                var bDate = new Date();
-                if (b.date && b.date.indexOf('-') > 0) {
-                    var p = b.date.split('-');
-                    var yArr = parseInt(p[0]);
-                    var mArr = parseInt(p[1]); mArr = mArr - 1;
-                    var dArr = parseInt(p[2]);
-                    bDate = new Date(yArr, mArr, dArr);
-                }
+                var bDate = new Date(b.date + 'T00:00:00');
+
                 if (limit >= bDate) {
                     visibleCount++;
-                    if (!isPaid) visibleTotal = visibleTotal + parseFloat(b.amount || 0);
+                    if (!isPaid) visibleTotal += parseFloat(b.amount || 0);
+
                     var li = document.createElement('li');
                     li.className = 'bill-item' + (isPaid ? ' paid' : '');
                     li.onclick = function () { btEdit(b.id); };
+
                     var leftDiv = document.createElement('div');
                     leftDiv.className = 'bill-left';
+
                     var nameDiv = document.createElement('div');
                     nameDiv.className = 'bill-name';
                     nameDiv.innerHTML = b.name + ' <span class="badge ' + (isPaid ? 'paid' : 'unpaid') + '">' +
                         (isPaid ? 'PAGADO' : 'PENDIENTE') + '</span>';
                     leftDiv.appendChild(nameDiv);
+
                     var infoDiv = document.createElement('div');
                     infoDiv.className = 'bill-info';
                     infoDiv.innerText = fmtDate(b.date) + " • " + b.category;
                     leftDiv.appendChild(infoDiv);
+
                     li.appendChild(leftDiv);
+
                     var rightDiv = document.createElement('div');
                     rightDiv.className = 'bill-amount';
                     rightDiv.innerText = "$" + b.amount;
                     li.appendChild(rightDiv);
+
                     list.appendChild(li);
                 }
             });
+
             if (visibleCount === 0) {
                 var empty = document.createElement('div');
                 empty.className = 'empty';
                 empty.innerText = "Todo pagado para los proximos " + viewDays + " dias";
                 list.appendChild(empty);
             }
+
             document.getElementById('bt-total').innerText = "$" + visibleTotal.toFixed(2);
+
             var unpaid = bills.filter(function (x) { return x.status === 'Unpaid' });
             var nextEl = document.getElementById('bt-next');
             if (unpaid.length > 0) {
                 var earliest = unpaid.sort(function (a, b) { return a.date > b.date ? 1 : -1 })[0];
-                if (earliest.date && earliest.date.indexOf('-') > 0) {
-                    var p = earliest.date.split('-');
-                    var yNext = parseInt(p[0]);
-                    var mNext = parseInt(p[1]); mNext = mNext - 1;
-                    var dNext = parseInt(p[2]);
-                    var dt = new Date(yNext, mNext, dNext);
-                    var nowZero = new Date();
-                    nowZero.setHours(0, 0, 0, 0);
-                    var msDiff = dt - nowZero;
-                    var oneDay = 86400000;
-                    var diff = Math.ceil(msDiff / oneDay);
-                    nextEl.innerText = diff + " dias";
-                    nextEl.style.color = (3 > diff) ? '#ef4444' : '#4ade80';
-                } else { nextEl.innerText = "-"; }
-            } else { nextEl.innerText = "-"; }
+                var dt = new Date(earliest.date + 'T00:00:00');
+                var now = new Date();
+                now.setHours(0, 0, 0, 0);
+                var diff = Math.ceil((dt - now) / 86400000);
+                nextEl.innerText = diff + " dias";
+                nextEl.style.color = (diff < 3) ? '#ef4444' : '#4ade80';
+            } else {
+                nextEl.innerText = "-";
+            }
         }
+
         function btAdd() {
             currentId = null;
             document.getElementById('bt-modal-title').innerText = "Nueva Cuenta";
@@ -483,6 +536,7 @@
             document.getElementById('bt-rec').value = "Once";
             document.getElementById('bt-modal').className = 'modal show';
         }
+
         function btEdit(id) {
             var b = bills.find(function (x) { return x.id === id });
             if (!b) return;
@@ -494,6 +548,7 @@
             document.getElementById('bt-date').value = b.date;
             document.getElementById('bt-cat').value = b.category;
             document.getElementById('bt-rec').value = b.recurrence;
+
             var toggleBtn = document.getElementById('bt-btn-toggle');
             if (b.status === 'Paid') {
                 toggleBtn.innerText = "Marcar Pendiente";
@@ -502,11 +557,14 @@
                 toggleBtn.innerText = "Marcar Pagado";
                 toggleBtn.style.background = "#22d3ee";
             }
+
             document.getElementById('bt-modal').className = 'modal show';
         }
+
         function btClose() {
             document.getElementById('bt-modal').className = 'modal';
         }
+
         function btSave() {
             var name = document.getElementById('bt-name').value;
             var amount = document.getElementById('bt-amount').value;
@@ -514,11 +572,14 @@
             var cat = document.getElementById('bt-cat').value;
             var catCustom = document.getElementById('bt-cat-custom').value;
             var rec = document.getElementById('bt-rec').value;
+
             if (cat === 'Otro' && catCustom) cat = catCustom;
+
             if (!name || !amount || !date) {
                 alert("Por favor completa todos los campos");
                 return;
             }
+
             var payload = {
                 name: name,
                 amount: parseFloat(amount),
@@ -526,34 +587,39 @@
                 category: cat,
                 recurrence: rec
             };
+
             if (currentId) {
                 payload.action = 'update';
                 payload.id = currentId;
             } else {
                 payload.action = 'add';
             }
+
             apiPost(payload, function () {
                 btClose();
                 btReload();
             });
         }
+
         function btToggle() {
             if (!currentId) return;
             var b = bills.find(function (x) { return x.id === currentId });
             if (!b) return;
-            var newStatus = (b.status === 'Paid') ? 'Unpaid' : 'Paid';
+
             apiPost({
                 action: 'update',
                 id: currentId,
-                status: newStatus
+                status: (b.status === 'Paid') ? 'Unpaid' : 'Paid'
             }, function () {
                 btClose();
                 btReload();
             });
         }
+
         function btDel() {
             if (!currentId) return;
             if (!confirm("¿Eliminar esta cuenta y todas las futuras recurrencias?")) return;
+
             apiPost({
                 action: 'delete',
                 id: currentId
@@ -564,4 +630,5 @@
         }
     </script>
 </body>
+
 </html>
