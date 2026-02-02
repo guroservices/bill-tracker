@@ -425,7 +425,7 @@
                 document.body.removeChild(form);
                 document.body.removeChild(iframe);
                 if (callback) callback();
-            }, 1000);
+            }, 5000);
         }
 
         window.addEventListener('load', function () {
@@ -580,6 +580,13 @@
                 return;
             }
 
+            // Show saving feedback
+            var saveBtn = document.querySelector('.btn-save');
+            var originalText = saveBtn.innerText;
+            saveBtn.innerText = 'GUARDANDO...';
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+
             var payload = {
                 name: name,
                 amount: parseFloat(amount),
@@ -596,6 +603,10 @@
             }
 
             apiPost(payload, function () {
+                // Re-enable button
+                saveBtn.innerText = originalText;
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = '1';
                 btClose();
                 btReload();
             });
