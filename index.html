@@ -366,7 +366,7 @@
     </div>
 
     <script>
-        // FIXED: Updated with your actual Google Script URL
+        // FIXED: Updated with your actual Google Script URL (NEW deployment with "Anyone" access)
         var API = "https://script.google.com/macros/s/AKfycbzANSfVHSZRuCrpzBTNW92WaJtHFPT2XfwHRMfZ7EAqy6yVeGE1wzp1SsVDVyNVKxto/exec";
         var bills = [];
         var currentId = null;
@@ -401,8 +401,11 @@
             document.body.appendChild(script);
         }
 
-        // FIXED: Changed field name from 'data' to 'payload' to match backend
+        // DEBUG VERSION: Added logging to track POST requests
         function apiPost(data, callback) {
+            console.log('🚀 apiPost called with data:', data);
+            console.log('📍 Sending to API:', API);
+
             var iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.name = 'hiddenFrame' + Date.now();
@@ -414,18 +417,24 @@
             form.action = API;
 
             var input = document.createElement('input');
-            input.name = 'payload';  // FIXED: Changed from 'data' to 'payload'
+            input.name = 'payload';
             input.value = JSON.stringify(data);
+            console.log('📦 Payload being sent:', input.value);
             form.appendChild(input);
 
             document.body.appendChild(form);
+            console.log('✉️ Submitting form to iframe...');
             form.submit();
 
             setTimeout(function () {
+                console.log('⏰ 2 second timeout complete - cleaning up');
                 document.body.removeChild(form);
                 document.body.removeChild(iframe);
-                if (callback) callback();
-            }, 5000);
+                if (callback) {
+                    console.log('✅ Calling callback...');
+                    callback();
+                }
+            }, 2000);
         }
 
         window.addEventListener('load', function () {
@@ -580,13 +589,6 @@
                 return;
             }
 
-            // Show saving feedback
-            var saveBtn = document.querySelector('.btn-save');
-            var originalText = saveBtn.innerText;
-            saveBtn.innerText = 'GUARDANDO...';
-            saveBtn.disabled = true;
-            saveBtn.style.opacity = '0.5';
-
             var payload = {
                 name: name,
                 amount: parseFloat(amount),
@@ -596,19 +598,48 @@
             };
 
             if (currentId) {
+                // EDITING: Optimistically update the local bill
                 payload.action = 'update';
                 payload.id = currentId;
+
+                var billIndex = bills.findIndex(function (b) { return b.id === currentId; });
+                if (billIndex !== -1) {
+                    // Update locally first
+                    if (payload.name !== undefined) bills[billIndex].name = payload.name;
+                    if (payload.amount !== undefined) bills[billIndex].amount = payload.amount;
+                    if (payload.date !== undefined) bills[billIndex].date = payload.date;
+                    if (payload.category !== undefined) bills[billIndex].category = payload.category;
+                    if (payload.status !== undefined) bills[billIndex].status = payload.status;
+                    if (payload.recurrence !== undefined) bills[billIndex].recurrence = payload.recurrence;
+                }
+
             } else {
+                // ADDING: Optimistically add to local array
                 payload.action = 'add';
+
+                // Generate temporary ID and add to bills array
+                var tempId = 'temp_' + Date.now();
+                bills.push({
+                    id: tempId,
+                    name: name,
+                    amount: parseFloat(amount),
+                    date: date,
+                    category: cat,
+                    status: 'Unpaid',
+                    recurrence: rec,
+                    seriesId: ''
+                });
             }
 
+            // Close modal and render immediately (feels instant!)
+            btClose();
+            btRender();
+
+            // Save in background and refresh after 3 seconds
             apiPost(payload, function () {
-                // Re-enable button
-                saveBtn.innerText = originalText;
-                saveBtn.disabled = false;
-                saveBtn.style.opacity = '1';
-                btClose();
-                btReload();
+                setTimeout(function () {
+                    btReload(); // Sync with server to get real IDs and recurring bills
+                }, 3000);
             });
         }
 
@@ -617,13 +648,21 @@
             var b = bills.find(function (x) { return x.id === currentId });
             if (!b) return;
 
+            var newStatus = (b.status === 'Paid') ? 'Unpaid' : 'Paid';
+
+            // Optimistic update
+            b.status = newStatus;
+            btClose();
+            btRender();
+
+            // Save in background
             apiPost({
                 action: 'update',
                 id: currentId,
-                status: (b.status === 'Paid') ? 'Unpaid' : 'Paid'
+                status: newStatus
             }, function () {
-                btClose();
-                btReload();
+                // Refresh after 2 seconds to ensure sync
+                setTimeout(btReload, 2000);
             });
         }
 
@@ -631,12 +670,19 @@
             if (!currentId) return;
             if (!confirm("¿Eliminar esta cuenta y todas las futuras recurrencias?")) return;
 
+            // Optimistic delete - remove from UI immediately
+            var deleteId = currentId;
+            bills = bills.filter(function (b) { return b.id !== deleteId; });
+            btClose();
+            btRender();
+
+            // Delete in background
             apiPost({
                 action: 'delete',
-                id: currentId
+                id: deleteId
             }, function () {
-                btClose();
-                btReload();
+                // Refresh after 2 seconds to ensure sync (handles recurring deletes)
+                setTimeout(btReload, 2000);
             });
         }
     </script>
