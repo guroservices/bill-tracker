@@ -170,6 +170,15 @@
             background: #1f241f;
         }
 
+        .bill-item.auto {
+            border-left-color: #fbbf24;
+        }
+
+        .bill-item.auto:hover {
+            background: #252525;
+            border-left-color: #fcd34d;
+        }
+
         .bill-left {
             flex: 1;
         }
@@ -199,6 +208,11 @@
         .badge.unpaid {
             background: #ef4444;
             color: #fff;
+        }
+
+        .badge.auto {
+            background: #fbbf24;
+            color: #000;
         }
 
         .bill-info {
@@ -389,6 +403,7 @@
                     <option value="Once">Una vez</option>
                     <option value="Monthly">Mensual</option>
                     <option value="Yearly">Anual</option>
+                    <option value="Auto">Pago automatico</option>
                 </select>
                 <div class="btn-group">
                     <button class="btn-save" onclick="btSave()">GUARDAR</button>
@@ -409,6 +424,7 @@
         var currentId = null;
         var viewDays = 15;
         var viewDaysPaid = 15;
+        var processedAutoIds = new Set(); // Prevent re-processing in same session
 
         // Pure JSONP - no CORS issues
         function btReload() {
@@ -419,6 +435,8 @@
                 if (response.status === 'success') {
                     bills = response.data || [];
                     btRender();
+                    // PAUSED: Disabling auto-pay trigger until backend is updated to prevent loops
+                    // btCheckAutoPay(); 
                     document.getElementById('bt-ui').style.display = 'block';
                     document.getElementById('bt-loader').style.display = 'none';
                 } else {
@@ -613,10 +631,43 @@
             }
         }
 
+        function btCheckAutoPay() {
+            var today = new Date().toISOString().split('T')[0];
+            var autoPayQueue = [];
+
+            bills.forEach(function (b) {
+                // Only process bills with real server IDs (not temp_) that haven't been processed yet
+                if (b.id && String(b.id).indexOf('temp_') === -1 &&
+                    b.status === 'Unpaid' && b.recurrence === 'Auto' && b.date <= today &&
+                    !processedAutoIds.has(b.id)) {
+
+                    autoPayQueue.push(b);
+                    processedAutoIds.add(b.id);
+                }
+            });
+
+            if (autoPayQueue.length > 0) {
+                console.log('🤖 Auto-paying ' + autoPayQueue.length + ' due bills...');
+                autoPayQueue.forEach(function (b) {
+                    b.status = 'Paid'; // Update local state immediately
+                    apiPost({
+                        action: 'update',
+                        id: b.id,
+                        status: 'Paid'
+                    });
+                });
+                // Render immediately to move them to paid section
+                btRender();
+                // Sync with server after a delay to finalize
+                setTimeout(btReload, 3000);
+            }
+        }
+
         // Helper function to create bill list items
         function createBillElement(b, isPaid) {
+            var isAuto = !isPaid && b.recurrence === 'Auto';
             var li = document.createElement('li');
-            li.className = 'bill-item' + (isPaid ? ' paid' : '');
+            li.className = 'bill-item' + (isPaid ? ' paid' : '') + (isAuto ? ' auto' : '');
             li.onclick = function () { btEdit(b.id); };
 
             var leftDiv = document.createElement('div');
@@ -624,8 +675,11 @@
 
             var nameDiv = document.createElement('div');
             nameDiv.className = 'bill-name';
-            nameDiv.innerHTML = b.name + ' <span class="badge ' + (isPaid ? 'paid' : 'unpaid') + '">' +
-                (isPaid ? 'PAGADO' : 'PENDIENTE') + '</span>';
+
+            var badgeClass = isPaid ? 'paid' : (isAuto ? 'auto' : 'unpaid');
+            var badgeText = isPaid ? 'PAGADO' : (isAuto ? 'AUTO' : 'PENDIENTE');
+
+            nameDiv.innerHTML = b.name + ' <span class="badge ' + badgeClass + '">' + badgeText + '</span>';
             leftDiv.appendChild(nameDiv);
 
             var infoDiv = document.createElement('div');
