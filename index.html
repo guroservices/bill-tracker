@@ -338,6 +338,25 @@
             font-size: 16px;
         }
 
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            accent-color: #fbbf24;
+        }
+
         .empty {
             text-align: center;
             padding: 40px;
@@ -403,8 +422,11 @@
                     <option value="Once">Una vez</option>
                     <option value="Monthly">Mensual</option>
                     <option value="Yearly">Anual</option>
-                    <option value="Auto">Pago automatico</option>
                 </select>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="bt-is-auto">
+                    Pago automático
+                </label>
                 <div class="btn-group">
                     <button class="btn-save" onclick="btSave()">GUARDAR</button>
                     <button class="btn-cancel" onclick="btClose()">CANCELAR</button>
@@ -435,8 +457,7 @@
                 if (response.status === 'success') {
                     bills = response.data || [];
                     btRender();
-                    // PAUSED: Disabling auto-pay trigger until backend is updated to prevent loops
-                    // btCheckAutoPay(); 
+                    btCheckAutoPay(); // Safety check for due auto-bills after data load
                     document.getElementById('bt-ui').style.display = 'block';
                     document.getElementById('bt-loader').style.display = 'none';
                 } else {
@@ -636,9 +657,9 @@
             var autoPayQueue = [];
 
             bills.forEach(function (b) {
-                // Only process bills with real server IDs (not temp_) that haven't been processed yet
+                // Only process bills with real server IDs that haven't been processed yet and are marked as isAuto
                 if (b.id && String(b.id).indexOf('temp_') === -1 &&
-                    b.status === 'Unpaid' && b.recurrence === 'Auto' && b.date <= today &&
+                    b.status === 'Unpaid' && b.isAuto && b.date <= today &&
                     !processedAutoIds.has(b.id)) {
 
                     autoPayQueue.push(b);
@@ -665,7 +686,7 @@
 
         // Helper function to create bill list items
         function createBillElement(b, isPaid) {
-            var isAuto = !isPaid && b.recurrence === 'Auto';
+            var isAuto = !isPaid && b.isAuto;
             var li = document.createElement('li');
             li.className = 'bill-item' + (isPaid ? ' paid' : '') + (isAuto ? ' auto' : '');
             li.onclick = function () { btEdit(b.id); };
@@ -706,6 +727,7 @@
             document.getElementById('bt-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('bt-cat').value = "Servicios";
             document.getElementById('bt-rec').value = "Once";
+            document.getElementById('bt-is-auto').checked = false;
             document.getElementById('bt-modal').className = 'modal show';
         }
 
@@ -720,6 +742,7 @@
             document.getElementById('bt-date').value = b.date;
             document.getElementById('bt-cat').value = b.category;
             document.getElementById('bt-rec').value = b.recurrence;
+            document.getElementById('bt-is-auto').checked = !!b.isAuto;
 
             var toggleBtn = document.getElementById('bt-btn-toggle');
             if (b.status === 'Paid') {
@@ -744,6 +767,7 @@
             var cat = document.getElementById('bt-cat').value;
             var catCustom = document.getElementById('bt-cat-custom').value;
             var rec = document.getElementById('bt-rec').value;
+            var isAuto = document.getElementById('bt-is-auto').checked;
 
             if (cat === 'Otro' && catCustom) cat = catCustom;
 
@@ -757,7 +781,8 @@
                 amount: parseFloat(amount),
                 date: date,
                 category: cat,
-                recurrence: rec
+                recurrence: rec,
+                isAuto: isAuto
             };
 
             if (currentId) {
@@ -774,6 +799,7 @@
                     if (payload.category !== undefined) bills[billIndex].category = payload.category;
                     if (payload.status !== undefined) bills[billIndex].status = payload.status;
                     if (payload.recurrence !== undefined) bills[billIndex].recurrence = payload.recurrence;
+                    if (payload.isAuto !== undefined) bills[billIndex].isAuto = payload.isAuto;
                 }
 
             } else {
@@ -790,6 +816,7 @@
                     category: cat,
                     status: 'Unpaid',
                     recurrence: rec,
+                    isAuto: isAuto,
                     seriesId: ''
                 });
             }
