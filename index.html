@@ -614,9 +614,11 @@
 
             var paidCount = 0;
 
-            bills.forEach(function (b) {
-                if (b.status !== 'Paid') return; // Only paid bills
+            // Get paid bills and sort descending (latest first)
+            var paidBills = bills.filter(function(b) { return b.status === 'Paid'; });
+            paidBills.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
 
+            paidBills.forEach(function (b) {
                 var bDate = new Date(b.date + 'T00:00:00');
 
                 if (paidLimit >= bDate) {
